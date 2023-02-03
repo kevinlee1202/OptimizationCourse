@@ -284,19 +284,58 @@ namespace lbfgs
 
         // PUT YOUR CODE FOR Lewis-Overton line search here
      
+        int count = 0;
+        double upperBound = stpmax;
+        double lowerBound = stpmin;
+        double funcValInit = f;
 
+        while (true)
+        {
+            x = xp + stp * s;
+            f = cd.proc_evaluate(cd.instance, x, g);
+            count = count + 1;
 
+            /* Check if Armijo Condition fails */
+            if (funcValInit - f < -param.f_dec_coeff * stp * gp.dot(s))
+            {
+                upperBound = stp;
+            }
+            /* Check if Curvature Condition fails */ 
+            else if (g.dot(s) < param.s_curv_coeff * gp.dot(s))
+            {
+                lowerBound = stp;
+            }
+            else
+            {
+                return 999;
+            }
 
+            /* Update step size*/
+            if (upperBound < stpmax)
+            {
+                stp = (upperBound + lowerBound) / 2;
+            }
+            else
+            {
+                stp = 2 * stp;
+            }
 
+            /* Line search error */
+            if (stp > stpmax)
+            {
+                return LBFGSERR_MAXIMUMSTEP;
+            }
 
+            if (stp < stpmin)
+            {
+                return LBFGSERR_MINIMUMSTEP;
+            }
 
-
-
-
-
-
-
-
+            if (count > param.max_linesearch)
+            {
+                return LBFGSERR_MAXIMUMLINESEARCH;
+            }
+        }
 
 
         //////////////////////////// HOMEWORK 1 END ////////////////////////////
